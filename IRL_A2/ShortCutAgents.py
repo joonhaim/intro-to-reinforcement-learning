@@ -1,3 +1,4 @@
+import numpy as np
 class QLearningAgent(object):
 
     def __init__(self, n_actions, n_states, epsilon=0.1, alpha=0.1, gamma=1.0):
@@ -7,20 +8,57 @@ class QLearningAgent(object):
         self.alpha = alpha
         self.gamma = gamma
         # TO DO: Initialize variables if necessary
-        
+
+        #Initialize Q(s,a) = 0
+        self.Q = np.zeros((self.n_states, self.n_actions))
+
     def select_action(self, state):
         # TO DO: Implement policy
-        action = None
-        return action
-        
-    def update(self, state, action, reward, done): # Augment arguments if necessary
+        # Epsilon Greedy Action Selection
+        if np.random.rand() < self.epsilon:
+            #Explore
+            return np.random.randint(self.n_actions)
+
+        else:
+            #Exploit
+            return np.argmax(self.Q[state,:])
+
+
+    def update(self, state, action, reward, next_state, done): # Augment arguments if necessary
         # TO DO: Implement Q-learning update
-        pass
-    
-    def train(self, n_episodes):
-        # TO DO: Implement the agent loop that trains for n_episodes. 
+        if done:
+            target = reward
+        else:
+            target = reward + self.gamma * np.max(self.Q[next_state,:])
+
+        td_error = target - self.Q[state,action]
+        self.Q[state,action] += self.alpha * td_error
+
+    def train(self, env, n_episodes):
+        # TO DO: Implement the agent loop that trains for n_episodes.
         # Return a vector with the the cumulative reward (=return) per episode
+
         episode_returns = []
+        for _ in range(n_episodes):
+            env.reset()
+            s = env.state()
+            done = env.done()
+            ep_return = 0
+
+            while not done:
+                a = self.select_action(s)
+                r = env.step(a)
+                sp = env.state()
+                done = env.done()
+
+                #Q-learning update
+                self.update(s, a, r, sp, done)
+
+                s=sp
+                ep_return += r
+
+            episode_returns.append(ep_return)
+
         return episode_returns
 
 
@@ -33,20 +71,59 @@ class SARSAAgent(object):
         self.alpha = alpha
         self.gamma = gamma
         # TO DO: Initialize variables if necessary
-        
+
+        #Initialization Q(s,a) = 0
+        self.Q = np.zeros((n_states, n_actions))
+
     def select_action(self, state):
         # TO DO: Implement policy
-        action = None
-        return action
-        
-    def update(self, state, action, reward, done): # Augment arguments if necessary
-        # TO DO: Implement SARSA update
-        pass
 
-    def train(self, n_episodes):
-        # TO DO: Implement the agent loop that trains for n_episodes. 
+        #Epsilon-greedy policy
+        if np.random.rand() < self.epsilon:
+            return np.random.randint(self.n_actions)
+        else:
+            return np.argmax(self.Q[state, :])
+
+    def update(self, state, action, reward, next_state, next_action, done): # Augment arguments if necessary
+        # TO DO: Implement SARSA update
+        if done:
+            target = reward
+        else:
+            target = reward + self.gamma * self.Q[next_state, next_action]
+
+        td_error = target - self.Q[state, action]
+        self.Q[state, action] += self.alpha * td_error
+
+    def train(self, env, n_episodes):
+        # TO DO: Implement the agent loop that trains for n_episodes.
         # Return a vector with the the cumulative reward (=return) per episode
         episode_returns = []
+        for _ in range(n_episodes):
+            env.reset()
+            s = env.state()
+            done = env.done()
+            ep_return = 0
+
+            # Select the first action
+            a = self.select_action(s)
+
+
+            while not done:
+                r = env.step(a)
+                sp = env.state()
+                done = env.done()
+
+                # Choose next action (on-policy)
+                ap = self.select_action(sp)
+
+                # SARSA update
+                self.update(s, a, r, sp, ap, done)
+
+                s = sp
+                a = ap
+                ep_return += r
+
+            episode_returns.append(ep_return)
         return episode_returns
 
 
@@ -59,21 +136,67 @@ class ExpectedSARSAAgent(object):
         self.alpha = alpha
         self.gamma = gamma
         # TO DO: Initialize variables if necessary
-        
+
+        #initialize Q(s,a) = 0
+        self.Q = np.zeros((n_states, n_actions))
+
+
     def select_action(self, state):
         # TO DO: Implement policy
-        action = None
-        return action
-        
-    def update(self, state, action, reward, done): # Augment arguments if necessary
-        # TO DO: Implement Expected SARSA update
-        pass
+        if np.random.rand() < self.epsilon:
+            return np.random.randint(self.n_actions)
+        else:
+            return np.argmax(self.Q[state, :])
 
-    def train(self, n_episodes):
-        # TO DO: Implement the agent loop that trains for n_episodes. 
+    def update(self, state, action, reward, next_state, done): # Augment arguments if necessary
+        # TO DO: Implement Expected SARSA update
+        if done:
+            target = reward
+        else:
+            #Compute expected value of Q(s',a') under epsilon greedy
+            q_next = self.Q[next_state, :]
+            best_a = np.argmax(q_next)
+            max_q = q_next[best_a]
+
+            #Prob of choosing best action under eps-greedy
+            prob_best = 1.0 - self.epsilon + (self.epsilon / self.n_actions)
+
+            #Prob of choosing any other action
+            prob_other = self.epsilon / self.n_actions
+
+            expected_value = 0.0
+            for a_prime in range (self.n_actions):
+                if a_prime == best_a:
+                    expected_value += prob_best * q_next[a_prime]
+                else:
+                    expected_value += prob_other * q_next[a_prime]
+            target = reward + self.gamma * expected_value
+        td_error = target - self.Q[state, action]
+        self.Q[state, action] += self.alpha * td_error
+
+    def train(self, env, n_episodes):
+        # TO DO: Implement the agent loop that trains for n_episodes.
         # Return a vector with the the cumulative reward (=return) per episode
         episode_returns = []
-        return episode_returns    
+        for _ in range(n_episodes):
+            env.reset()
+            s = env.state()
+            done = env.done()
+            ep_return = 0
+
+            while not done:
+                a = self.select_action(s)
+                r = env.step(a)
+                sp = env.state()
+                done = env.done()
+
+                #Update
+                self.update(s, a, r, sp, done)
+
+                s=sp
+                ep_return += r
+            episode_returns.append(ep_return)
+        return episode_returns
 
 
 class nStepSARSAAgent(object):
@@ -86,21 +209,81 @@ class nStepSARSAAgent(object):
         self.alpha = alpha
         self.gamma = gamma
         # TO DO: Initialize variables if necessary
-        
+
+        #initialize Q(s,a) =0
+        self.Q = np.zeros((n_states, n_actions))
+
     def select_action(self, state):
         # TO DO: Implement policy
-        action = None
-        return action
-        
+        if np.random.rand() < self.epsilon:
+            return np.random.randint(self.n_actions)
+        else:
+            return np.argmax(self.Q[state,:])
+
     def update(self, states, actions, rewards, done): # Augment arguments if necessary
         # TO DO: Implement n-step SARSA update
-        pass
-    
-    def train(self, n_episodes):
-        # TO DO: Implement the agent loop that trains for n_episodes. 
+        length = len(states)
+
+        updates_to_perform = 0
+        if length >= self.n:
+            updates_to_perform = 1
+        if done:
+            updates_to_perform = length
+
+        for _ in range(updates_to_perform):
+            s0 = states[0]
+            a0 = actions[0]
+
+            G = 0.0
+            discount = 1.0
+
+            #sum of discounted rewards
+            for reward in rewards[0:min(self.n,len(rewards))]:
+                G += discount * reward
+                discount *= self.gamma
+
+            if len(states) > self.n:
+                s_next = states[self.n]
+                a_next = actions[self.n]
+                G+= discount * self.Q[s_next, a_next]
+
+            #TD error
+            td_error = G - self.Q[s0, a0]
+            self.Q[s0, a0] += self.alpha * td_error
+
+            states.pop(0)
+            actions.pop(0)
+            rewards.pop(0)
+
+
+    def train(self, env, n_episodes):
+        # TO DO: Implement the agent loop that trains for n_episodes.
         # Return a vector with the the cumulative reward (=return) per episode
         episode_returns = []
-        return episode_returns  
-    
-    
-    
+
+        for _ in range(n_episodes):
+            env.reset()
+            s = env.state()
+            done = env.done()
+
+            states = []
+            actions = []
+            rewards = []
+
+            ep_return = 0
+
+            while not done:
+                a = self.select_action(s)
+                r = env.step(a)
+                sp = env.state()
+                done = env.done()
+
+                states.append(s)
+                actions.append(a)
+                rewards.append(r)
+
+                self.update(states, actions, rewards, done)
+                s = sp
+                ep_return += r
+            episode_returns.append(ep_return)
+        return episode_returns

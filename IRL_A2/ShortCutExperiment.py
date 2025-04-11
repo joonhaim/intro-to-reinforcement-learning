@@ -143,7 +143,13 @@ def save_greedy_trajectory(Q, env, filename, title="Greedy Trajectory"):
                     ha='center', va='center', fontsize=12)
 
     # 3) Simulate from the start to get the actual path
-    env.reset()
+    env.reset()  # Needed to initialize env state
+
+    # Force bottom start
+    env.x = env.c // 6
+    env.y = 5 * env.r // 6 - 1
+    env.starty = env.y
+
     path_coords = []
     max_steps = 200  # to prevent infinite loop if we never reach the goal
     for _ in range(max_steps):
@@ -198,7 +204,7 @@ def experiment_qlearning():
     save_greedy_trajectory(
         q_agent_long.Q,
         q_env_long,
-        "qlearning_greedy_trajectory.png",
+        "trajectory_qlearning.png",
         title="Greedy Trajectory - Q-Learning"
     )
 

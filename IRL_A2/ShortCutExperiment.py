@@ -19,9 +19,6 @@ from ShortCutAgents import (QLearningAgent, SARSAAgent,ExpectedSARSAAgent,nStepS
 from ShortCutEnvironment import (ShortcutEnvironment,WindyShortcutEnvironment)
 
 def smooth(data, window=10):
-    """
-    Applies smoothing to the array.
-    """
     if window < 2:
         return data
     cumulative_sum = np.cumsum(np.insert(data, 0, 0))
@@ -30,15 +27,7 @@ def smooth(data, window=10):
     return np.concatenate((np.full(pad_length, smoothed[0]), smoothed))
 
 
-def run_experiment(
-    agent_class,
-    env_class,
-    n_episodes,
-    n_reps=1,
-    agent_params=None,
-    env_params=None,
-    smoothing_window=1
-):
+def run_experiment(agent_class, env_class, n_episodes, n_reps=1, agent_params=None, env_params=None, smoothing_window=1):
     """
     Runs a given agent on a given environment over multiple repetitions.
     Returns the averaged return per episode (optionally smoothed).
@@ -74,8 +63,7 @@ def run_experiment(
 
 def single_long_run(agent_class, env_class, n_episodes, agent_params=None, env_params=None):
     """
-    Runs a single 'long' experiment (e.g., 10,000 episodes) and returns
-    the trained agent & environment. Useful for visualizing the greedy policy.
+    Runs a single 'long' experiment (10,000 episodes) and returns the trained agent & environment.
     """
     if agent_params is None:
         agent_params = {}
@@ -110,16 +98,14 @@ def plot_curves(curves, labels, title, filename, xlabel="Episode", ylabel="Avera
     print(f"Saved figure: {filename}")
 
 
-############################
-# Separate experiment fns
-############################
+###########################
 
 def experiment_qlearning():
     """
     Runs Q-Learning experiments:
-      (a) Single long run (10,000 episodes) + show greedy policy
-      (b) 100 reps of 1,000 episodes
-      (c) alpha in [0.01, 0.1, 0.5, 0.9]
+      1. Single long run (10,000 episodes) + show greedy policy
+      2. 100 reps of 1,000 episodes
+      3. alpha in [0.01, 0.1, 0.5, 0.9]
     """
     print("=== Q-Learning: Single long run (10,000 episodes) ===")
     q_agent_long, q_env_long, q_returns_long = single_long_run(
@@ -194,9 +180,9 @@ def experiment_qlearning():
 def experiment_sarsa():
     """
     Runs SARSA experiments:
-      (a) Single long run (10,000 episodes) + show greedy policy
-      (b) 100 reps of 1,000 episodes
-      (c) alpha in [0.01, 0.1, 0.5, 0.9]
+      1. Single long run (10,000 episodes) + show greedy policy
+      2. 100 reps of 1,000 episodes
+      3. alpha in [0.01, 0.1, 0.5, 0.9]
     """
     print("=== SARSA: Single long run (10,000 episodes) ===")
     sarsa_agent_long, sarsa_env_long, sarsa_returns_long = single_long_run(
@@ -310,9 +296,9 @@ def experiment_windy():
 def experiment_expectedsarsa():
     """
     Expected SARSA experiments on ShortcutEnvironment:
-      (a) Single long run (10,000 episodes) + show policy
-      (b) 100 reps of 1,000 episodes
-      (c) alpha in [0.01, 0.1, 0.5, 0.9]
+      1. Single long run (10,000 episodes) + show policy
+      2. 100 reps of 1,000 episodes
+      3. alpha in [0.01, 0.1, 0.5, 0.9]
     """
     print("=== Expected SARSA: Single long run (10,000 episodes) ===")
     esarsa_agent_long, esarsa_env_long, esarsa_returns_long = single_long_run(
@@ -387,8 +373,8 @@ def experiment_expectedsarsa():
 def experiment_nstepsarsa():
     """
     n-step SARSA experiment on ShortcutEnvironment:
-      (a) Single long run (10,000 episodes, default n=5)
-      (b) 100 reps of 1,000 episodes for n in [1, 2, 5, 10, 25]
+      1. Single long run (10,000 episodes, default n=5)
+      2. 100 reps of 1,000 episodes for n in [1, 2, 5, 10, 25]
     """
     print("=== n-step SARSA: Single long run (10,000 episodes) ===")
     nsarsa_agent_long, nsarsa_env_long, nsarsa_returns_long = single_long_run(
@@ -476,4 +462,3 @@ if __name__ == "__main__":
         experiment_nstepsarsa()
 
     print("\nAll experiments completed. Figures have been saved.")
-

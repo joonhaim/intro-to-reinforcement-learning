@@ -271,8 +271,10 @@ class nStepSARSAAgent(object):
             rewards = []
 
             ep_return = 0
+            max_steps = 1000
+            steps = 0
 
-            while not done:
+            while not done and steps < max_steps:
                 a = self.select_action(s)
                 r = env.step(a)
                 sp = env.state()
@@ -285,6 +287,7 @@ class nStepSARSAAgent(object):
                 self.update(states, actions, rewards, done)
                 s = sp
                 ep_return += r
+                steps += 1
 
             while len(states) > 0:
                 self.update(states, actions, rewards, done=True)

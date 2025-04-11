@@ -13,6 +13,7 @@
 import argparse
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.patches as patches
 
 from ShortCutAgents import (QLearningAgent, SARSAAgent,ExpectedSARSAAgent,nStepSARSAAgent)
 from ShortCutEnvironment import (ShortcutEnvironment,WindyShortcutEnvironment)
@@ -98,6 +99,75 @@ def plot_curves(curves, labels, title, filename, xlabel="Episode", ylabel="Avera
     print(f"Saved figure: {filename}")
 
 
+def save_greedy_trajectory(Q, env, filename, title="Greedy Trajectory"):
+    """
+    Renders & saves a plot of the environment
+    """
+    import matplotlib.pyplot as plt
+    import matplotlib.patches as patches
+
+    arrow_map = ["↑", "↓", "←", "→"]
+    # shape (r, c)
+    greedy_actions = np.argmax(Q, axis=1).reshape((env.r, env.c))
+    # we will compute the path as a list of (x, y) positions
+
+    fig, ax = plt.subplots(figsize=(6, 6))
+    ax.set_xlim(0, env.c)
+    ax.set_ylim(0, env.r)
+    ax.set_xticks([])
+    ax.set_yticks([])
+    ax.set_title(title)
+
+    # 1) Draw each cell
+    for y in range(env.r):
+        for x in range(env.c):
+            cell_type = env.s[y, x]
+            color = 'white'
+            if cell_type == 'G':
+                color = 'green'
+            elif cell_type == 'C':
+                color = 'red'
+            rect = patches.Rectangle((x, env.r - 1 - y), 1, 1,
+                                     linewidth=0.5, edgecolor='black', facecolor=color, alpha=0.3)
+            ax.add_patch(rect)
+
+    # 2) Draw the best-action arrows
+    for y in range(env.r):
+        for x in range(env.c):
+            a = greedy_actions[y, x]
+            # Optionally skip if Q-values are all zero
+            # if not any(Q[y*env.c + x]):  # or check np.max
+            #     continue
+            arrow_char = arrow_map[a]
+            ax.text(x + 0.5, env.r - 1 - y + 0.5, arrow_char,
+                    ha='center', va='center', fontsize=12)
+
+    # 3) Simulate from the start to get the actual path
+    env.reset()
+    path_coords = []
+    max_steps = 200  # to prevent infinite loop if we never reach the goal
+    for _ in range(max_steps):
+        sx, sy = env.x, env.y
+        path_coords.append((sx + 0.5, env.r - 1 - sy + 0.5))
+        if env.done():
+            break
+        s_idx = env.state()
+        a = np.argmax(Q[s_idx])
+        env.step(a)
+        if env.done():
+            # Add final position
+            path_coords.append((env.x + 0.5, env.r - 1 - env.y + 0.5))
+            break
+
+    # 4) Draw the path (thick line connecting each point in path_coords)
+    if len(path_coords) > 1:
+        xs, ys = zip(*path_coords)
+        ax.plot(xs, ys, color='blue', linewidth=3, marker='o', markersize=4)
+
+    plt.savefig(filename, dpi=150)
+    plt.close()
+    print(f"Saved greedy trajectory as: {filename}")
+
 #-------------------------
 # Experiment Functions
 #-------------------------
@@ -124,6 +194,13 @@ def experiment_qlearning():
     )
     print("\nGreedy policy for Q-Learning (ShortcutEnvironment):")
     q_env_long.render_greedy(q_agent_long.Q)
+
+    save_greedy_trajectory(
+        q_agent_long.Q,
+        q_env_long,
+        "qlearning_greedy_trajectory.png",
+        title="Greedy Trajectory - Q-Learning"
+    )
 
     print("=== Q-Learning: 100 reps of 1,000 episodes ===")
     n_reps = 100
@@ -202,6 +279,9 @@ def experiment_sarsa():
     print("\nGreedy policy for SARSA (ShortcutEnvironment):")
     sarsa_env_long.render_greedy(sarsa_agent_long.Q)
 
+    save_greedy_trajectory(sarsa_agent_long.Q, sarsa_env_long, "trajectory_sarsa.png", title="Greedy Trajectory - SARSA")
+
+
     print("=== SARSA: 100 reps of 1,000 episodes ===")
     n_reps = 100
     n_episodes = 1000
@@ -278,6 +358,9 @@ def experiment_windy():
     print("\nGreedy policy for Q-Learning (Windy):")
     windy_q_env.render_greedy(windy_q_agent.Q)
 
+    save_greedy_trajectory(windy_q_agent.Q, windy_q_env, "trajectory_qlearning_windy.png",
+                           title="Greedy Trajectory - Q-Learning (Windy)")
+
     # SARSA single run
     windy_sarsa_agent, windy_sarsa_env, _ = single_long_run(
         SARSAAgent,
@@ -293,6 +376,8 @@ def experiment_windy():
     )
     print("\nGreedy policy for SARSA (Windy):")
     windy_sarsa_env.render_greedy(windy_sarsa_agent.Q)
+
+    save_greedy_trajectory(windy_sarsa_agent.Q, windy_sarsa_env, "trajectory_sarsa_windy.png", title="Greedy Trajectory - SARSA (Windy)")
 
 
 def experiment_expectedsarsa():
@@ -317,6 +402,9 @@ def experiment_expectedsarsa():
     )
     print("\nGreedy policy for Expected SARSA (ShortcutEnvironment):")
     esarsa_env_long.render_greedy(esarsa_agent_long.Q)
+
+    save_greedy_trajectory(esarsa_agent_long.Q, esarsa_env_long, "trajectory_expectedsarsa.png",
+                           title="Greedy Trajectory - Expected SARSA")
 
     print("=== Expected SARSA: 100 reps of 1,000 episodes ===")
     n_reps = 100
@@ -394,6 +482,9 @@ def experiment_nstepsarsa():
     )
     print("\nGreedy policy for n-step SARSA (n=5):")
     nsarsa_env_long.render_greedy(nsarsa_agent_long.Q)
+
+    save_greedy_trajectory(nsarsa_agent_long.Q, nsarsa_env_long, "trajectory_nstepsarsa.png",
+                           title="Greedy Trajectory - n-step SARSA (n=5)")
 
     print("=== n-step SARSA: 100 reps of 1,000 episodes for various n ===")
     n_values = [1, 2, 5, 10, 25]

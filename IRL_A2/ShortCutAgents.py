@@ -285,5 +285,10 @@ class nStepSARSAAgent(object):
                 self.update(states, actions, rewards, done)
                 s = sp
                 ep_return += r
+
+            while len(states) > 0:
+                self.update(states, actions, rewards, done=True)
+
             episode_returns.append(ep_return)
+
         return episode_returns

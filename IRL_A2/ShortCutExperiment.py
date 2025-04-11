@@ -13,7 +13,6 @@
 import argparse
 import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib.patches as patches
 
 from ShortCutAgents import (QLearningAgent, SARSAAgent,ExpectedSARSAAgent,nStepSARSAAgent)
 from ShortCutEnvironment import (ShortcutEnvironment,WindyShortcutEnvironment)

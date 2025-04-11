@@ -1,42 +1,31 @@
 # Write your experiments in here! You can use the plotting helper functions from the previous assignment if you want.
-###############################################################
-# ShortCutExperiment.py
 #
 # Usage: python ShortCutExperiment.py
 #    or: python ShortCutExperiment.py --qlearning --sarsa
 #
 # This script will run the experiments:
-#   1. Q-Learning
-#   2. SARSA
-#   3. Windy environment (Q-Learning vs. SARSA)
-#   4. Expected SARSA
-#   5. n-step SARSA
+#   1. Q-Learning (--qlearning)
+#   2. SARSA (--sarsa)
+#   3. Windy environment (Q-Learning vs. SARSA) (--windy)
+#   4. Expected SARSA (--expectedsarsa)
+#   5. n-step SARSA (--nstepsarsa)
 
 
 import argparse
 import numpy as np
 import matplotlib.pyplot as plt
 
-from ShortCutAgents import (
-    QLearningAgent,
-    SARSAAgent,
-    ExpectedSARSAAgent,
-    nStepSARSAAgent
-)
-from ShortCutEnvironment import (
-    ShortcutEnvironment,
-    WindyShortcutEnvironment
-)
+from ShortCutAgents import (QLearningAgent, SARSAAgent,ExpectedSARSAAgent,nStepSARSAAgent)
+from ShortCutEnvironment import (ShortcutEnvironment,WindyShortcutEnvironment)
 
 def smooth(data, window=10):
     """
-    Simple moving average smoothing of a 1D array.
+    Applies smoothing to the array.
     """
     if window < 2:
         return data
-    cumsum = np.cumsum(np.insert(data, 0, 0))
-    smoothed = (cumsum[window:] - cumsum[:-window]) / float(window)
-    # Pad to the original length, repeating the first smoothed value at start.
+    cumulative_sum = np.cumsum(np.insert(data, 0, 0))
+    smoothed = (cumulative_sum[window:] - cumulative_sum[:-window]) / float(window)
     pad_length = len(data) - len(smoothed)
     return np.concatenate((np.full(pad_length, smoothed[0]), smoothed))
 
@@ -487,3 +476,4 @@ if __name__ == "__main__":
         experiment_nstepsarsa()
 
     print("\nAll experiments completed. Figures have been saved.")
+

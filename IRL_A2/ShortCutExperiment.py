@@ -10,7 +10,6 @@
 #   4. Expected SARSA (--expectedsarsa)
 #   5. n-step SARSA (--nstepsarsa)
 
-
 import argparse
 import numpy as np
 import matplotlib.pyplot as plt
@@ -18,13 +17,18 @@ import matplotlib.pyplot as plt
 from ShortCutAgents import (QLearningAgent, SARSAAgent,ExpectedSARSAAgent,nStepSARSAAgent)
 from ShortCutEnvironment import (ShortcutEnvironment,WindyShortcutEnvironment)
 
+#-------------------------
+# Helper Functions
+#-------------------------
+
 def smooth(data, window=10):
+    """Smooth curve using a moving average"""
     if window < 2:
         return data
     cumulative_sum = np.cumsum(np.insert(data, 0, 0))
     smoothed = (cumulative_sum[window:] - cumulative_sum[:-window]) / float(window)
-    pad_length = len(data) - len(smoothed)
-    return np.concatenate((np.full(pad_length, smoothed[0]), smoothed))
+    padding = np.full(len(data) - len(smoothed), smoothed[0])
+    return np.concatenate((padding, smoothed))
 
 
 def run_experiment(agent_class, env_class, n_episodes, n_reps=1, agent_params=None, env_params=None, smoothing_window=1):
@@ -32,14 +36,14 @@ def run_experiment(agent_class, env_class, n_episodes, n_reps=1, agent_params=No
     Runs a given agent on a given environment over multiple repetitions.
     Returns the averaged return per episode (optionally smoothed).
 
-    :param agent_class: A reference to one of the agent classes (QLearningAgent, etc.)
-    :param env_class: A reference to the environment class (ShortcutEnvironment, etc.)
-    :param n_episodes: Number of episodes per repetition.
-    :param n_reps: Number of independent repetitions.
-    :param agent_params: Dictionary of agent hyperparameters.
-    :param env_params: Dictionary of environment construction parameters.
-    :param smoothing_window: For simple moving average smoothing of the final curve.
-    :return: 1D numpy array of length n_episodes (averaged & smoothed).
+    agent_class: A reference to one of the agent classes (QLearningAgent, etc.)
+    env_class: A reference to the environment class (ShortcutEnvironment, etc.)
+    n_episodes: Number of episodes per repetition.
+    n_reps: Number of independent repetitions.
+    agent_params: Dictionary of agent hyperparameters.
+    env_params: Dictionary of environment construction parameters.
+    smoothing_window: For simple moving average smoothing of the final curve.
+    returns 1D numpy array of length n_episodes (averaged & smoothed).
     """
     if agent_params is None:
         agent_params = {}
@@ -80,11 +84,7 @@ def single_long_run(agent_class, env_class, n_episodes, agent_params=None, env_p
 
 
 def plot_curves(curves, labels, title, filename, xlabel="Episode", ylabel="Average Return"):
-    """
-    Utility to plot multiple learning curves on one figure.
-    curves: list of 1D arrays
-    labels: list of strings
-    """
+    """Plot and save learning curves"""
     plt.figure()
     for data, label in zip(curves, labels):
         plt.plot(data, label=label)
@@ -98,7 +98,9 @@ def plot_curves(curves, labels, title, filename, xlabel="Episode", ylabel="Avera
     print(f"Saved figure: {filename}")
 
 
-###########################
+#-------------------------
+# Experiment Functions
+#-------------------------
 
 def experiment_qlearning():
     """
@@ -420,14 +422,14 @@ def experiment_nstepsarsa():
         nsarsa_labels.append(f"n={n_val}")
 
     # Plot
-    plot_curves(
-        nsarsa_curves,
-        nsarsa_labels,
-        "n-step SARSA: 100 reps, 1000 episodes",
-        "nstep_sarsa_n_variation.png"
-    )
+    plot_curves(nsarsa_curves, nsarsa_labels,"n-step SARSA: 100 reps, 1000 episodes",
+                "nstep_sarsa_n_variation.png")
 
 
+
+#-------------------------
+# Main function
+#-------------------------
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--qlearning", action="store_true", help="Run Q-Learning experiments")

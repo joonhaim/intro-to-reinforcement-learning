@@ -101,6 +101,7 @@ class SARSAAgent(object):
             s = env.state()
             done = env.done()
             ep_return = 0
+            a = self.select_action(s)
 
             while not done:
                 r = env.step(a)
@@ -176,21 +177,21 @@ class ExpectedSARSAAgent(object):
         for _ in range(n_episodes):
             env.reset()
             s = env.state()
-            done = env.done()
             ep_return = 0
 
-            while not done:
+            while not env.done():
                 a = self.select_action(s)
                 r = env.step(a)
                 sp = env.state()
-                done = env.done()
 
                 #Update
-                self.update(s, a, r, sp, done)
+                self.update(s, a, r, sp, env.done())
 
                 s=sp
                 ep_return += r
             episode_returns.append(ep_return)
+
+            print("Completed episode: ", _)
         return episode_returns
 
 
@@ -215,7 +216,8 @@ class nStepSARSAAgent(object):
         else:
             return np.argmax(self.Q[state,:])
 
-    def update(self, states, actions, rewards, done):
+    def update(self, states, actions, rewards, done): # Augment arguments if necessary
+        # TO DO: Implement n-step SARSA update
         length = len(states)
 
         updates_to_perform = 0

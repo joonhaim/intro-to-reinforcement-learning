@@ -15,12 +15,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 
-from ShortCutAgents import (QLearningAgent, SARSAAgent,ExpectedSARSAAgent,nStepSARSAAgent)
-from ShortCutEnvironment import (ShortcutEnvironment,WindyShortcutEnvironment)
+from ShortCutAgents import (QLearningAgent, SARSAAgent, ExpectedSARSAAgent, nStepSARSAAgent)
+from ShortCutEnvironment import (ShortcutEnvironment, WindyShortcutEnvironment)
 
-#-------------------------
+
+# -------------------------
 # Helper Functions
-#-------------------------
+# -------------------------
 
 def smooth(data, window=10):
     """Smooth curve using a moving average"""
@@ -32,7 +33,8 @@ def smooth(data, window=10):
     return np.concatenate((padding, smoothed))
 
 
-def run_experiment(agent_class, env_class, n_episodes, n_reps=1, agent_params=None, env_params=None, smoothing_window=1):
+def run_experiment(agent_class, env_class, n_episodes, n_reps=1, agent_params=None, env_params=None,
+                   smoothing_window=1):
     """
     Runs a given agent on a given environment over multiple repetitions.
     Returns the averaged return per episode (optionally smoothed).
@@ -58,7 +60,7 @@ def run_experiment(agent_class, env_class, n_episodes, n_reps=1, agent_params=No
         agent = agent_class(**agent_params)
         returns = agent.train(env, n_episodes)
         all_returns[rep, :] = returns
-        print(f"[{agent_class.__name__}] Finished repetition {rep+1}/{n_reps}")
+        print(f"[{agent_class.__name__}] Finished repetition {rep + 1}/{n_reps}")
 
     avg_returns = np.mean(all_returns, axis=0)
     # Optionally smooth
@@ -101,15 +103,15 @@ def plot_curves(curves, labels, title, filename, xlabel="Episode", ylabel="Cumul
 
 def save_greedy_trajectory(Q, env, filename, title="Greedy Trajectory"):
     """
-    Renders & saves a plot of the environment
+    Renders & saves a plot of the environment with greedy trajectories from two starting locations
     """
     import matplotlib.pyplot as plt
     import matplotlib.patches as patches
+    import copy
 
     arrow_map = ["↑", "↓", "←", "→"]
     # shape (r, c)
     greedy_actions = np.argmax(Q, axis=1).reshape((env.r, env.c))
-    # we will compute the path as a list of (x, y) positions
 
     fig, ax = plt.subplots(figsize=(6, 6))
     ax.set_xlim(0, env.c)
@@ -135,48 +137,63 @@ def save_greedy_trajectory(Q, env, filename, title="Greedy Trajectory"):
     for y in range(env.r):
         for x in range(env.c):
             a = greedy_actions[y, x]
-            # Optionally skip if Q-values are all zero
-            # if not any(Q[y*env.c + x]):  # or check np.max
-            #     continue
             arrow_char = arrow_map[a]
             ax.text(x + 0.5, env.r - 1 - y + 0.5, arrow_char,
                     ha='center', va='center', fontsize=12)
 
-    # 3) Simulate from the start to get the actual path
-    env.reset()  # Needed to initialize env state
+    # 3) Define the two starting locations and colors
+    start_positions = [
+        {"x": env.c // 6, "y": env.r // 6, "color": "blue"},
+        {"x": env.c // 6, "y": 5 * env.r // 6 - 1, "color": "purple"}
+    ]
 
-    # Force bottom start
-    env.x = env.c // 6
-    env.y = 5 * env.r // 6 - 1
-    env.starty = env.y
+    # 4) For each starting position, simulate the path
+    for start_pos in start_positions:
+        # Make a deep copy of environment to avoid state changes affecting other runs
+        env_copy = copy.deepcopy(env)
+        env_copy.reset()
 
-    path_coords = []
-    max_steps = 200  # to prevent infinite loop if we never reach the goal
-    for _ in range(max_steps):
-        sx, sy = env.x, env.y
-        path_coords.append((sx + 0.5, env.r - 1 - sy + 0.5))
-        if env.done():
-            break
-        s_idx = env.state()
-        a = np.argmax(Q[s_idx])
-        env.step(a)
-        if env.done():
-            # Add final position
-            path_coords.append((env.x + 0.5, env.r - 1 - env.y + 0.5))
-            break
+        # Set to specific starting position
+        env_copy.x = start_pos["x"]
+        env_copy.y = start_pos["y"]
+        env_copy.starty = env_copy.y
 
-    # 4) Draw the path (thick line connecting each point in path_coords)
-    if len(path_coords) > 1:
-        xs, ys = zip(*path_coords)
-        ax.plot(xs, ys, color='blue', linewidth=3, marker='o', markersize=4)
+        path_coords = []
+        max_steps = 200  # to prevent infinite loop if we never reach the goal
+
+        for _ in range(max_steps):
+            sx, sy = env_copy.x, env_copy.y
+            path_coords.append((sx + 0.5, env.r - 1 - sy + 0.5))
+
+            if env_copy.done():
+                break
+
+            s_idx = env_copy.state()
+            a = np.argmax(Q[s_idx])
+            env_copy.step(a)
+
+            if env_copy.done():
+                # Add final position
+                path_coords.append((env_copy.x + 0.5, env.r - 1 - env_copy.y + 0.5))
+                break
+
+        # Draw the path with the specified color
+        if len(path_coords) > 1:
+            xs, ys = zip(*path_coords)
+            ax.plot(xs, ys, color=start_pos["color"], linewidth=3, marker='o',
+                    markersize=4, label=f"Path from ({start_pos['x']}, {start_pos['y']})")
+
+    # Add legend
+    ax.legend(loc='upper right')
 
     plt.savefig(filename, dpi=150)
     plt.close()
     print(f"Saved greedy trajectory as: {filename}")
 
-#-------------------------
+
+# -------------------------
 # Experiment Functions
-#-------------------------
+# -------------------------
 
 def experiment_qlearning():
     """
@@ -289,7 +306,6 @@ def experiment_sarsa():
 
     save_greedy_trajectory(agent.Q, env, "trajectory_sarsa.png", title="Greedy Trajectory - SARSA")
 
-
     print("=== SARSA: 100 reps of 1,000 episodes ===")
     n_reps = 100
     n_episodes = 1000
@@ -366,7 +382,8 @@ def experiment_windy():
     print("\nGreedy policy for Q-Learning (Windy):")
     env.render_greedy(agent.Q)
 
-    save_greedy_trajectory(agent.Q, env, "trajectory_qlearning_windy.png", title="Greedy Trajectory - Q-Learning (Windy)")
+    save_greedy_trajectory(agent.Q, env, "trajectory_qlearning_windy.png",
+                           title="Greedy Trajectory - Q-Learning (Windy)")
 
     # SARSA single run
     agent, env = single_long_run(
@@ -518,14 +535,13 @@ def experiment_nstepsarsa():
         nsarsa_labels.append(f"n={n_val}")
 
     # Plot
-    plot_curves(nsarsa_curves, nsarsa_labels,"n-step SARSA: 100 reps, 1000 episodes",
+    plot_curves(nsarsa_curves, nsarsa_labels, "n-step SARSA: 100 reps, 1000 episodes",
                 "nstep_sarsa_n_variation.png")
 
 
-
-#-------------------------
+# -------------------------
 # Main function
-#-------------------------
+# -------------------------
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--qlearning", action="store_true", help="Run Q-Learning experiments")

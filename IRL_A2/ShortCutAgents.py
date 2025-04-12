@@ -161,11 +161,10 @@ class ExpectedSARSAAgent(object):
             # Compute expected value
             expected_next_reward = 0.0
             for a_prime in range(self.n_actions):
-                reward = q_next[a_prime]
                 if a_prime == best_a:
-                    expected_next_reward += prob_best * reward
+                    expected_next_reward += prob_best * q_next[a_prime]
                 else:
-                    expected_next_reward += prob_other * reward
+                    expected_next_reward += prob_other * q_next[a_prime]
             target = reward + self.gamma * expected_next_reward
         td_error = target - self.Q[state, action]
         self.Q[state, action] += self.alpha * td_error
@@ -177,21 +176,24 @@ class ExpectedSARSAAgent(object):
         for _ in range(n_episodes):
             env.reset()
             s = env.state()
+            done = env.done()
             ep_return = 0
+            a = self.select_action(s)
 
-            while not env.done():
-                a = self.select_action(s)
+            while not done:
                 r = env.step(a)
                 sp = env.state()
+                done = env.done()
 
-                #Update
-                self.update(s, a, r, sp, env.done())
+                # SARSA update
+                self.update(s, a, r, sp, done)
 
-                s=sp
+                s = sp
+                # Choose next action (on-policy) for next cycle
+                a = self.select_action(s)
                 ep_return += r
-            episode_returns.append(ep_return)
 
-            print("Completed episode: ", _)
+            episode_returns.append(ep_return)
         return episode_returns
 
 

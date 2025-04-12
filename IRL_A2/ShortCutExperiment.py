@@ -13,6 +13,7 @@
 import argparse
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.patches as patches
 
 from ShortCutAgents import (QLearningAgent, SARSAAgent,ExpectedSARSAAgent,nStepSARSAAgent)
 from ShortCutEnvironment import (ShortcutEnvironment,WindyShortcutEnvironment)
@@ -78,12 +79,12 @@ def single_long_run(agent_class, env_class, n_episodes, agent_params=None, env_p
     agent = agent_class(**agent_params)
 
     print(f"[{agent_class.__name__}] Starting single long run of {n_episodes} episodes...")
-    returns = agent.train(env, n_episodes)
+    agent.train(env, n_episodes)
     print(f"[{agent_class.__name__}] Done.")
-    return agent, env, returns
+    return agent, env
 
 
-def plot_curves(curves, labels, title, filename, xlabel="Episode", ylabel="Average Return"):
+def plot_curves(curves, labels, title, filename, xlabel="Episode", ylabel="Cumulative reward"):
     """Plot and save learning curves"""
     plt.figure()
     for data, label in zip(curves, labels):
@@ -185,24 +186,24 @@ def experiment_qlearning():
       3. alpha in [0.01, 0.1, 0.5, 0.9]
     """
     print("=== Q-Learning: Single long run (10,000 episodes) ===")
-    q_agent_long, q_env_long, q_returns_long = single_long_run(
+    agent, env = single_long_run(
         QLearningAgent,
         ShortcutEnvironment,
         n_episodes=10000,
         agent_params={
             "n_actions": 4,
-            "n_states": 12 * 12,
+            "n_states": 144,
             "epsilon": 0.1,
             "alpha": 0.1,
             "gamma": 1.0
         }
     )
     print("\nGreedy policy for Q-Learning (ShortcutEnvironment):")
-    q_env_long.render_greedy(q_agent_long.Q)
+    env.render_greedy(agent.Q)
 
     save_greedy_trajectory(
-        q_agent_long.Q,
-        q_env_long,
+        agent.Q,
+        env,
         "trajectory_qlearning.png",
         title="Greedy Trajectory - Q-Learning"
     )
@@ -229,6 +230,7 @@ def experiment_qlearning():
     q_curves_alphas = []
     labels_alphas = []
     for alpha in alpha_values:
+        print(f"=== Q-Learning: 100 reps of 1,000 episodes for alpha {alpha} ===")
         avg_curve = run_experiment(
             QLearningAgent,
             ShortcutEnvironment,
@@ -253,6 +255,7 @@ def experiment_qlearning():
         "Q-Learning: 100 reps, 1000 episodes",
         "qlearning_100reps.png"
     )
+
     plot_curves(
         q_curves_alphas,
         labels_alphas,
@@ -269,7 +272,7 @@ def experiment_sarsa():
       3. alpha in [0.01, 0.1, 0.5, 0.9]
     """
     print("=== SARSA: Single long run (10,000 episodes) ===")
-    sarsa_agent_long, sarsa_env_long, sarsa_returns_long = single_long_run(
+    agent, env = single_long_run(
         SARSAAgent,
         ShortcutEnvironment,
         n_episodes=10000,
@@ -282,9 +285,9 @@ def experiment_sarsa():
         }
     )
     print("\nGreedy policy for SARSA (ShortcutEnvironment):")
-    sarsa_env_long.render_greedy(sarsa_agent_long.Q)
+    env.render_greedy(agent.Q)
 
-    save_greedy_trajectory(sarsa_agent_long.Q, sarsa_env_long, "trajectory_sarsa.png", title="Greedy Trajectory - SARSA")
+    save_greedy_trajectory(agent.Q, env, "trajectory_sarsa.png", title="Greedy Trajectory - SARSA")
 
 
     print("=== SARSA: 100 reps of 1,000 episodes ===")
@@ -348,7 +351,7 @@ def experiment_windy():
     print("=== WindyShortcutEnvironment: Q-Learning vs. SARSA single run ===")
 
     # Q-Learning single run
-    windy_q_agent, windy_q_env, _ = single_long_run(
+    agent, env = single_long_run(
         QLearningAgent,
         WindyShortcutEnvironment,
         n_episodes=10000,
@@ -361,13 +364,12 @@ def experiment_windy():
         }
     )
     print("\nGreedy policy for Q-Learning (Windy):")
-    windy_q_env.render_greedy(windy_q_agent.Q)
+    env.render_greedy(agent.Q)
 
-    save_greedy_trajectory(windy_q_agent.Q, windy_q_env, "trajectory_qlearning_windy.png",
-                           title="Greedy Trajectory - Q-Learning (Windy)")
+    save_greedy_trajectory(agent.Q, env, "trajectory_qlearning_windy.png", title="Greedy Trajectory - Q-Learning (Windy)")
 
     # SARSA single run
-    windy_sarsa_agent, windy_sarsa_env, _ = single_long_run(
+    agent, env = single_long_run(
         SARSAAgent,
         WindyShortcutEnvironment,
         n_episodes=10000,
@@ -380,9 +382,9 @@ def experiment_windy():
         }
     )
     print("\nGreedy policy for SARSA (Windy):")
-    windy_sarsa_env.render_greedy(windy_sarsa_agent.Q)
+    env.render_greedy(agent.Q)
 
-    save_greedy_trajectory(windy_sarsa_agent.Q, windy_sarsa_env, "trajectory_sarsa_windy.png", title="Greedy Trajectory - SARSA (Windy)")
+    save_greedy_trajectory(agent.Q, env, "trajectory_sarsa_windy.png", title="Greedy Trajectory - SARSA (Windy)")
 
 
 def experiment_expectedsarsa():
@@ -393,7 +395,7 @@ def experiment_expectedsarsa():
       3. alpha in [0.01, 0.1, 0.5, 0.9]
     """
     print("=== Expected SARSA: Single long run (10,000 episodes) ===")
-    esarsa_agent_long, esarsa_env_long, esarsa_returns_long = single_long_run(
+    agent, env = single_long_run(
         ExpectedSARSAAgent,
         ShortcutEnvironment,
         n_episodes=10000,
@@ -406,10 +408,9 @@ def experiment_expectedsarsa():
         }
     )
     print("\nGreedy policy for Expected SARSA (ShortcutEnvironment):")
-    esarsa_env_long.render_greedy(esarsa_agent_long.Q)
+    env.render_greedy(agent.Q)
 
-    save_greedy_trajectory(esarsa_agent_long.Q, esarsa_env_long, "trajectory_expectedsarsa.png",
-                           title="Greedy Trajectory - Expected SARSA")
+    save_greedy_trajectory(agent.Q, env, "trajectory_expectedsarsa.png", title="Greedy Trajectory - Expected SARSA")
 
     print("=== Expected SARSA: 100 reps of 1,000 episodes ===")
     n_reps = 100
@@ -472,7 +473,7 @@ def experiment_nstepsarsa():
       2. 100 reps of 1,000 episodes for n in [1, 2, 5, 10, 25]
     """
     print("=== n-step SARSA: Single long run (10,000 episodes) ===")
-    nsarsa_agent_long, nsarsa_env_long, nsarsa_returns_long = single_long_run(
+    agent, env = single_long_run(
         nStepSARSAAgent,
         ShortcutEnvironment,
         n_episodes=10000,
@@ -486,10 +487,9 @@ def experiment_nstepsarsa():
         }
     )
     print("\nGreedy policy for n-step SARSA (n=5):")
-    nsarsa_env_long.render_greedy(nsarsa_agent_long.Q)
+    env.render_greedy(agent.Q)
 
-    save_greedy_trajectory(nsarsa_agent_long.Q, nsarsa_env_long, "trajectory_nstepsarsa.png",
-                           title="Greedy Trajectory - n-step SARSA (n=5)")
+    save_greedy_trajectory(agent.Q, env, "trajectory_nstepsarsa.png", title="Greedy Trajectory - n-step SARSA (n=5)")
 
     print("=== n-step SARSA: 100 reps of 1,000 episodes for various n ===")
     n_values = [1, 2, 5, 10, 25]

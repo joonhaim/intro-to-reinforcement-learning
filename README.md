@@ -1,4 +1,4 @@
-# Introduction to Reinforcement Learning – Course Assignments
+# Introduction to Reinforcement Learning
 
 Welcome to the repository for the *Introduction to Reinforcement Learning* course at **Leiden University**.
 

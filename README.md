@@ -4,6 +4,10 @@ This repository contains all programming assignments for the *Introduction to Re
 
 Each assignment explores different aspects of reinforcement learning, ranging from bandit problems and dynamic programming to model-free learning.
 
+### Authors
+
+- Adrien Joon-Ha Im
+- Bence Vállint
 ---
 
 ## 📚 Assignments

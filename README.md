@@ -7,7 +7,7 @@ Each assignment explores different aspects of reinforcement learning, ranging fr
 ### Authors
 
 - Adrien Joon-Ha Im
-- Bence Vállint
+- Bence Válint
 ---
 
 ## 📚 Assignments

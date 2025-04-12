@@ -529,7 +529,7 @@ def experiment_nstepsarsa():
                 "alpha": 0.1,
                 "gamma": 1.0
             },
-            smoothing_window=10
+            smoothing_window=25
         )
         nsarsa_curves.append(avg_curve)
         nsarsa_labels.append(f"n={n_val}")

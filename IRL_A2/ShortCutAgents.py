@@ -18,7 +18,6 @@ class QLearningAgent(object):
         if np.random.rand() < self.epsilon:
             #Explore
             return np.random.randint(self.n_actions)
-
         else:
             #Exploit
             return np.argmax(self.Q[state,:])
@@ -95,7 +94,6 @@ class SARSAAgent(object):
         self.Q[state, action] += self.alpha * td_error
 
     def train(self, env, n_episodes):
-        # TO DO: Implement the agent loop that trains for n_episodes.
         # Return a vector with the the cumulative reward (=return) per episode
         episode_returns = []
         for _ in range(n_episodes):
@@ -103,10 +101,6 @@ class SARSAAgent(object):
             s = env.state()
             done = env.done()
             ep_return = 0
-
-            # Select the first action
-            a = self.select_action(s)
-
 
             while not done:
                 r = env.step(a)
@@ -156,21 +150,22 @@ class ExpectedSARSAAgent(object):
             #Compute expected value of Q(s',a') under epsilon greedy
             q_next = self.Q[next_state, :]
             best_a = np.argmax(q_next)
-            max_q = q_next[best_a]
 
             #Prob of choosing best action under eps-greedy
             prob_best = 1.0 - self.epsilon + (self.epsilon / self.n_actions)
 
             #Prob of choosing any other action
-            prob_other = self.epsilon / self.n_actions
+            prob_other = (1 - prob_best) / self.n_actions
 
-            expected_value = 0.0
-            for a_prime in range (self.n_actions):
+            # Compute expected value
+            expected_next_reward = 0.0
+            for a_prime in range(self.n_actions):
+                reward = q_next[a_prime]
                 if a_prime == best_a:
-                    expected_value += prob_best * q_next[a_prime]
+                    expected_next_reward += prob_best * reward
                 else:
-                    expected_value += prob_other * q_next[a_prime]
-            target = reward + self.gamma * expected_value
+                    expected_next_reward += prob_other * reward
+            target = reward + self.gamma * expected_next_reward
         td_error = target - self.Q[state, action]
         self.Q[state, action] += self.alpha * td_error
 
@@ -220,8 +215,7 @@ class nStepSARSAAgent(object):
         else:
             return np.argmax(self.Q[state,:])
 
-    def update(self, states, actions, rewards, done): # Augment arguments if necessary
-        # TO DO: Implement n-step SARSA update
+    def update(self, states, actions, rewards, done):
         length = len(states)
 
         updates_to_perform = 0
@@ -284,7 +278,7 @@ class nStepSARSAAgent(object):
                 actions.append(a)
                 rewards.append(r)
 
-                self.update(states, actions, rewards, done)
+                self.update(states.copy(), actions.copy(), rewards.copy(), done)
                 s = sp
                 ep_return += r
                 steps += 1

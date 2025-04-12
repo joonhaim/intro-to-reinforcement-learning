@@ -1,4 +1,4 @@
-# 🧠 Introduction to Reinforcement Learning – Course Assignments
+# Introduction to Reinforcement Learning – Course Assignments
 
 Welcome to the repository for the *Introduction to Reinforcement Learning* course at **Leiden University**.
 
@@ -6,18 +6,18 @@ This repository contains all programming assignments, each exploring a different
 
 ---
 
-## 👥 Authors
+## Authors
 
 - **Adrien Joon-Ha Im**  
 - **Bence Válint**
 
 ---
 
-## 📚 Assignments Overview
+## Assignments Overview
 
 ---
 
-### 📌 **Assignment 1 – Exploration Strategies in Bandits**
+### **Assignment 1 – Exploration Strategies in Bandits**
 
 **Topic:** Action-value estimation and exploration in multi-armed bandits  
 **Methods:**
@@ -34,7 +34,7 @@ This repository contains all programming assignments, each exploring a different
 
 ---
 
-### 📌 **Assignment 2 – Model-Free Reinforcement Learning**
+### **Assignment 2 – Model-Free Reinforcement Learning**
 
 **Topic:** Learning through interaction without a model of the environment  
 **Algorithms:**
@@ -55,7 +55,7 @@ This repository contains all programming assignments, each exploring a different
 
 ---
 
-### 📌 **Assignment 3 – Model-Based Reinforcement Learning**
+### **Assignment 3 – Model-Based Reinforcement Learning**
 
 **Topic:** Planning using a full model of the environment  
 **Techniques:**
@@ -71,7 +71,7 @@ This repository contains all programming assignments, each exploring a different
 
 ---
 
-## 🗂️ Repository Structure
+## Repository Structure
 
 Each assignment is located in its own folder:
 
@@ -82,12 +82,3 @@ Each folder typically contains:
 - Experiment scripts  
 - Visualizations and plots  
 - Final report (`report.pdf`)
-
----
-
-## ▶️ Running the Code
-
-Install the required dependencies:
-
-```bash
-pip install numpy matplotlib scipy

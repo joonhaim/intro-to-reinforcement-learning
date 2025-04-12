@@ -12,7 +12,7 @@ Each assignment explores different aspects of reinforcement learning, ranging fr
 
 ## 📚 Assignments
 
-### ✅ **Assignment 1 – Exploration Strategies in Bandits**
+### **Assignment 1 – Exploration Strategies in Bandits**
 Focuses on action-value estimation and exploration methods in multi-armed bandit problems:
 - ε-Greedy
 - Optimistic Initialization
@@ -22,7 +22,7 @@ Includes plots of average rewards and comparison of strategies.
 
 ---
 
-### ✅ **Assignment 2 – Model-Free Reinforcement Learning**
+### **Assignment 2 – Model-Free Reinforcement Learning**
 Implements and compares several model-free RL algorithms in a custom gridworld:
 - Q-Learning
 - SARSA

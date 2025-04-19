@@ -9,6 +9,8 @@ By Thomas Moerland
 
 import numpy as np
 import matplotlib.pyplot as plt
+
+
 from scipy.signal import savgol_filter
 
 class LearningCurvePlot:

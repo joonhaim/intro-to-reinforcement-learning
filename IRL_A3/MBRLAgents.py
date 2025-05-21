@@ -13,16 +13,16 @@ from MBRLEnvironment import WindyGridworld
 class DynaAgent:
 
     def __init__(self, n_states, n_actions, learning_rate, gamma):
-        self.n_states = n_states
-        self.n_actions = n_actions
-        self.learning_rate = learning_rate
-        self.gamma = gamma
-        # TO DO: Initialize relevant elements
+        self.n_states = n_states #number of states
+        self.n_actions = n_actions #number of actions
+        self.learning_rate = learning_rate #alpha step-size for updates
+        self.gamma = gamma #discount factor for future rewards
 
-        # Value table
+        # Q-table: estimated action-values for each state-action pair
         self.Q_sa = np.zeros((n_states, n_actions))
 
-        # Tab model
+        # Tab model of transitions
+        # counts of observed next states for each (s,a) pair, and rewards for each (s,a,s')
         self.n_sas = np.zeros((n_states, n_actions, n_states), dtype=int) #counting transitions
         self.R_sum_sas = np.zeros((n_states, n_actions, n_states), dtype=float) #sums of rewards
 
@@ -33,17 +33,16 @@ class DynaAgent:
 
 
     def select_action(self, s, epsilon):
-        # TO DO: Change this to e-greedy action selection
         if np.random.random() < epsilon:
+            # explore: choose random action
             return np.random.randint(self.n_actions)
+        #exploit: choose one of greedy actions
         q = self.Q_sa[s]
         max_q = np.max(q)
         greedy = np.flatnonzero(q == max_q)
         return int(np.random.choice(greedy))
         
     def update(self,s,a,r,done,s_next,n_planning_updates):
-        # TO DO: Add Dyna update
-
         # 1) Real Q-learning update
         target = r + self.gamma * (0.0 if done else np.max(self.Q_sa[s_next]))
         self.Q_sa[s, a] += self.learning_rate * (target - self.Q_sa[s, a])
@@ -61,6 +60,7 @@ class DynaAgent:
         for _ in range(n_planning_updates):
             if not self.visited_sa:
                 break
+            #Randomly pick a previously seen (s,a)
             s_sim, a_sim = self.visited_sa[np.random.randint(len(self.visited_sa))]
             counts = self.n_sas[s_sim, a_sim]
             total = counts.sum()
@@ -68,7 +68,9 @@ class DynaAgent:
                 continue
             probs = counts / total
             s_sim_next = int(np.random.choice(self.n_states, p=probs))
+            #estimate reward from average observed reward
             r_sim = self.R_sum_sas[s_sim, a_sim, s_sim_next] / counts[s_sim_next]
+            #simulated Q-update
             tgt = r_sim + self.gamma * np.max(self.Q_sa[s_sim_next])
             self.Q_sa[s_sim, a_sim] += self.learning_rate * (tgt - self.Q_sa[s_sim, a_sim])
 
@@ -96,18 +98,19 @@ class PrioritizedSweepingAgent:
         self.n_actions = n_actions
         self.learning_rate = learning_rate
         self.gamma = gamma
+        #Minimum TD error threshold
         self.priority_cutoff = priority_cutoff
+        #Priority queue storing
         self.queue = PriorityQueue()
-        # TO DO: Initialize relevant elements
-
+        #Q-table for action-values
         self.Q_sa = np.zeros((n_states, n_actions))
-
+        #Transition counts and rewards
         self.n_sas = np.zeros((n_states, n_actions, n_states), dtype=int)
         self.R_sum_sas = np.zeros((n_states, n_actions, n_states), dtype=float)
+        #Predecessor states for each state
         self.predecessors = [set() for _ in range(n_states)]
         
     def select_action(self, s, epsilon):
-        # TO DO: Change this to e-greedy action selection
         if np.random.rand() < epsilon:
             return np.random.randint(self.n_actions)
         q = self.Q_sa[s]
@@ -116,16 +119,7 @@ class PrioritizedSweepingAgent:
         return int(np.random.choice(greedy_actions))
 
     def update(self,s,a,r,done,s_next,n_planning_updates):
-        
-        # TO DO: Add Prioritized Sweeping code
-        
-        # Helper code to work with the queue
-        # Put (s,a) on the queue with priority p (needs a minus since the queue pops the smallest priority first)
-        # self.queue.put((-p,(s,a))) 
-        # Retrieve the top (s,a) from the queue
-        # _,(s,a) = self.queue.get() # get the top (s,a) for the queue
-
-        # 1) Standard Q-learning upd.
+        # 1) Standard Q-learning update
         old_q = self.Q_sa[s, a]
         target = r + self.gamma * (0.0 if done else np.max(self.Q_sa[s_next]))
         td_err = target - old_q
@@ -146,6 +140,7 @@ class PrioritizedSweepingAgent:
                 break
             _, (s_p, a_p) = self.queue.get()
 
+            #sample next-state and reward from model
             counts = self.n_sas[s_p, a_p]
             total = counts.sum()
             if total == 0:
@@ -156,6 +151,7 @@ class PrioritizedSweepingAgent:
             s_p_next = int(np.random.choice(self.n_states, p=probs))
             r_p = self.R_sum_sas[s_p, a_p, s_p_next] / counts[s_p_next]
 
+            #perform Q-update for planned step
             old_q_p = self.Q_sa[s_p, a_p]
             tgt_p = r_p + self.gamma * np.max(self.Q_sa[s_p_next])
             td_err_p = tgt_p - old_q_p

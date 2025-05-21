@@ -57,17 +57,22 @@ This repository contains all programming assignments, each exploring a different
 
 ### **Assignment 3 – Model-Based Reinforcement Learning**
 
-**Topic:** Planning using a full model of the environment  
-**Techniques:**
-- Value Iteration  
-- Policy Iteration
+**Topic:** Planning with an explicit environment model  
+**Algorithms:**
+- Dyna-Q (tabular model plus simulated planning)  
+- Prioritized Sweeping (focused planning via priority queue)
+
+**Environment:**
+- Windy Gridworld (stochastic wind proportion 0.9 & 1.0)
 
 **Includes:**
-- Convergence analysis  
-- Optimal value functions  
-- Policy visualizations
+- Learning curves for varying planning depths (n = 0, 1, 3, 5)  
+- Pure Q-learning baseline (n = 0)  
+- Smooth vs. unsmoothed performance comparison  
+- Runtime benchmarking  
+- Comparison plots: Dyna vs. Prioritized Sweeping vs. Q-learning
 
-📄 [Assignment 3 Report](report.pdf)
+📄 [Assignment 3 Report](IRL_A3/report.pdf)  
 
 ---
 

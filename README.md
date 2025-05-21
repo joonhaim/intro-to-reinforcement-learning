@@ -2,7 +2,7 @@
 
 Welcome to the repository for the *Introduction to Reinforcement Learning* course at **Leiden University**.
 
-This repository contains all programming assignments, each exploring a different aspect of reinforcement learning — from bandit problems and dynamic programming to model-free and model-based learning.
+This repository contains all programming assignments, each exploring a different aspect of reinforcement learning: from bandit problems and dynamic programming to model-free and model-based learning.
 
 ---
 

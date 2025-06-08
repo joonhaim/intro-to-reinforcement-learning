@@ -17,7 +17,7 @@ This repository contains all assignments, each exploring a different aspect of r
 
 ---
 
-### **Assignment 1 – Exploration Strategies in Bandits**
+### **Assignment 1A – Exploration Strategies in Bandits**
 
 **Topic:** Action-value estimation and exploration in multi-armed bandits  
 **Methods:**
@@ -30,6 +30,14 @@ This repository contains all assignments, each exploring a different aspect of r
 - Average reward plots
 
 📄 [Assignment 1A Report](IRL_A1/Assignment_1A_Report[FINAL].pdf)  
+
+### **Assignment 1B – Dynamic Programming**
+
+**Topic:** Solving Gridworld using dynamic programming
+**Methods:**
+- Value Iteration
+- Policy Iteration
+  
 📄 [Assignment 1B Report](IRL_A1/Assignment_1B_Report[FINAL].pdf)
 
 ---

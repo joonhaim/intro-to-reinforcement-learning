@@ -83,7 +83,7 @@ Each assignment is located in its own folder:
 - `IRL_A1/`, `IRL_A2/`, `IRL_A3/`
 
 Each folder typically contains:
-- Agent & environment implementations  
-- Experiment scripts  
-- Visualizations and plots  
-- Final report (`report.pdf`)
+- Agent & environment implementations
+- Experiment scripts or notebooks (IRL_A1 uses Jupyter notebooks with embedded code)
+- Visualizations and plots
+- Final report(s) (filenames may differ between assignments; IRL_A1 includes two)
